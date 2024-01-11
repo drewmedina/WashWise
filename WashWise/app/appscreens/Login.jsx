@@ -1,11 +1,12 @@
-import {View, Text, StyleSheet, TextInput, ActivityIndicator, KeyboardAvoidingView, Pressable} from 'react-native';
+import {Image, View, Text, StyleSheet, TextInput, ActivityIndicator, KeyboardAvoidingView, Pressable, ImageBackground} from 'react-native';
 import React, {useState} from 'react';
+import Logo from '../../assets/bcg.png';
 import { FIREBASE_AUTH } from '../../FireBaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 
-const Login = ()=>{
+const Login = ({navigation}) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -16,6 +17,8 @@ const Login = ()=>{
             const response = await signInWithEmailAndPassword(auth, email,password);
             console.log(response);
             alert('Check your email');
+            setLoading(true);
+            navigation.navigate('FloorSelect');
         }
         catch (error){
             console.log(error);
@@ -24,35 +27,28 @@ const Login = ()=>{
             setLoading(false);
         }
     }
-
-    const signUp = async () => {
-        setLoading(true);
-        try{
-            const response = await createUserWithEmailAndPassword(auth, email, password);
-            console.log(response);
-        }
-        catch (error){
-            console.log(error)
-        }
-        finally{
-            setLoading(false);
-        }
-    }
     return (
         <View style = {styles.container}>
-            <KeyboardAvoidingView behavior = "padding">
-            <Text style = {styles.Header}> Login or Sign Up </Text>
-            <TextInput value = {email} style = {styles.input} placeholder = "Email" autoCapitalize = "none" onChangeText={(text) => setEmail(text)}/>
-            <TextInput secureTextEntry = {true} value = {password} style = {styles.input} placeholder = "Password" autoCapitalize = "none" onChangeText={(text) => setPassword(text)}/>
+                        <ImageBackground source = {Logo} resizeMode="cover" style={styles.Logo}>
 
-            {loading ? <ActivityIndicator size = "large" color = "0000f" />
+            <KeyboardAvoidingView behavior = "padding">
+            <Pressable style = {styles.BackButton}  onPress={() => navigation.navigate('home')}><Text style = {styles.BackButton}>{'< Back'}</Text></Pressable>
+
+            <Text style = {styles.Header}> Welcome Back! </Text>
+
+            <Text style = {styles.EmailHeader}>Email</Text>
+            <TextInput value = {email} style = {styles.inputEmail} placeholder = "example@email.com" placeholderTextColor = '#FFFFFF' autoCapitalize = "none" onChangeText={(text) => setEmail(text)}/>
+            <Text style = {styles.PasswordHeader}>Password</Text>
+
+            <TextInput secureTextEntry = {true} value = {password} style = {styles.inputPass} placeholder = "Password" placeholderTextColor = '#FFFFFF' autoCapitalize = "none" onChangeText={(text) => setPassword(text)}/>
+
+            {loading ? <ActivityIndicator size = "large" color = "#0000f" />
             :(<>
-            <Pressable style = {styles.LoginBox}  onPress={signIn}><Text style = {styles.Login}>Login</Text></Pressable>
-            <Pressable style = {styles.signUPBox} title = "Create Account" onPress={signUp}><Text style = {styles.signUP}>Sign Up</Text></Pressable>
+            <Pressable style = {styles.Login}  onPress={signIn}><Text style = {styles.LoginText}>Login</Text></Pressable>
             </>
             )}
             </KeyboardAvoidingView>
-           
+            </ImageBackground>
         </View>
     );
 }
@@ -60,13 +56,25 @@ export default Login;
 
 const styles = StyleSheet.create({
     container: {
+    
       marginHorizontal: 0,
+      marginRight: 0,
+      marginLeft:0,
       flex: 1,
       justifyContent: 'center',
-      backgroundColor: '#23395d',
     },
-    input: {    
-        borderColor: '#000000',
+    inputEmail: {    
+        borderColor: '#FFFFFF',
+        borderWidth: 1,
+        marginVertical: 10,
+        marginHorizontal: 10,
+        padding: 5,
+
+        
+
+    },
+    inputPass: {    
+        borderColor: '#FFFFFF',
         borderWidth: 1,
         marginVertical: 10,
         marginHorizontal: 10,
@@ -74,45 +82,67 @@ const styles = StyleSheet.create({
         
 
     },
+    PasswordHeader: {
+        marginHorizontal: 10,
+        fontSize: 30,
+        color: '#FFFFFF',
+
+        
+    },
+    EmailHeader: {
+        marginTop: 150,
+        marginHorizontal: 10,
+        fontSize: 30,
+        color: '#FFFFFF',
+
+        
+    },
     Header: {
+        marginTop: 100,
         marginHorizontal: 5,
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        fontSize: 30,
-    },
-    LoginBox: {
-        marginVertical: 50,
-        marginBottom: 10,
-        marginHorizontal: '25%',
-        alginItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#FFFFFF',
-        textAlign: 'center',
-        width: '50%',
-        borderRadius: 25,
-
+        fontSize: 40,
+        color: '#FFFFFF',
     },
     Login: {
-        fontSize: 30,
-        textAlign: 'center',
-    },
-    signUPBox: {
-        marginVertical: 10,
-        marginHorizontal: '25%',
-        alginItems: 'center',
-        justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: '#FFFFFF',
-        textAlign: 'center',
-        width: '50%',
-        borderRadius: 25,
+        borderRadius: '25%',
+        width: '60%',
+        height: 50,
+        marginLeft: '20%',
+        marginTop: 75,
+        borderColor: '#2c6ade',
+        borderWidth: 1,
+
+        
+
 
     },
-    signUP: {
-        fontSize: 30,
-        textAlign: 'center',
+    LoginText: {
+        fontSize: 25,
+        color: '#2c6ade',
+        marginTop: '4%',
     },
+    Logo: {
+        flex: 1,
+    },
+    BackButton: {
+        color: '#FFFFFF',
+        marginHorizontal: 10,
+        marginVertical: 30,
+        fontSize: 20,
 
+        
+    },
+    Back: {
+        textDecorationLine: 'underline',
+
+    },
+    
+    
 
    
   });
