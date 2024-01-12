@@ -16,7 +16,9 @@ const firebaseConfig = {
   storageBucket: "washwise-b784e.appspot.com",
   messagingSenderId: "739657637572",
   appId: "1:739657637572:web:c5217f3a1d9736df39b391",
-  measurementId: "G-K6P6JZ6NJB"
+  measurementId: "G-K6P6JZ6NJB",
+  databaseURL: "https://washwise-b784e-default-rtdb.firebaseio.com/"
+
 };
 
 // Initialize Firebase

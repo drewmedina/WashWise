@@ -15,32 +15,42 @@ const SignUp = ()=> {
 
   const signUp = async () => {
     try {
+
+       // Generate a unique key for the new user
+       const db = getDatabase();
+      
+      const newKey = push(ref(db, 'users')).key;
       // Create user in Firebase Authentication
       const response = await createUserWithEmailAndPassword(auth, email, password);
 
+      
       // Get a reference to the users node in the Realtime Database
-      const usersRef = ref(getDatabase(DB), 'users');
+
 
       // Generate a unique key for the new user
-      const newKey = push(usersRef).key;
+     
 
       // Set user data in the Realtime Database
-      set(ref(getDatabase(DB), 'users/' + newKey), {
+      set(ref(db, 'users/' + newKey), {
         username: username,
         email: email,
         phone: number,
       }).then(() => {
-        alert('Data submitted');
+        alert('Account Created!');
       }).catch((error) => {
-        alert(error.message);
+        alert('Error saving user data: ' + error.message);
       });
-
-      console.log(response);
     } catch (error) {
-      console.error(error);
+      if (error.code === 'auth/email-already-in-use') {
+        alert('Email address is already in use. Please use a different email.');
+      } else {
+        console.error(error);
+      }
     }
-  };
 
+  };
+    
+  
   return (
     <View style={styles.container}>
       <ImageBackground source = {Logo} style = {styles.Logo}>
