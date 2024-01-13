@@ -29,7 +29,7 @@ export default function HomeScreen({navigation}) {
     Login: {
         alignItems: 'center',
         backgroundColor: '#FFFFFF',
-        borderRadius: '25%',
+        borderRadius: 25,
         width: '60%',
         height: 50,
         marginLeft: '20%',
@@ -50,7 +50,7 @@ export default function HomeScreen({navigation}) {
         marginTop: '5%',
         alignItems: 'center',
         backgroundColor: '#2c6ade',
-        borderRadius: '25%',
+        borderRadius: 25,
         width: '60%',
         height: 50,
         marginLeft: '20%',

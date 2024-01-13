@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Pressable, ImageBackground } from 'react-native';
 import React, { useState } from 'react';
 import { FIREBASE_AUTH } from '../../FireBaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, getAuth, signInWithEmailAndPassword, User } from 'firebase/auth';
 import { getDatabase, ref, set, push } from "firebase/database";
 import { DB } from "../../FireBaseConfig.js";
 import Logo from '../../assets/bcg.png';
@@ -17,11 +17,11 @@ const SignUp = ()=> {
     try {
 
        // Generate a unique key for the new user
-       const db = getDatabase();
+      const db = getDatabase();
       
-      const newKey = push(ref(db, 'users')).key;
-      // Create user in Firebase Authentication
-      const response = await createUserWithEmailAndPassword(auth, email, password);
+      const newKey = email.replace(".", "_");
+      const response = await createUserWithEmailAndPassword(auth, email, password)
+      
 
       
       // Get a reference to the users node in the Realtime Database
@@ -36,10 +36,22 @@ const SignUp = ()=> {
         email: email,
         phone: number,
       }).then(() => {
-        alert('Account Created!');
+        // Update profile after setting user data
+        updateProfile(auth.currentUser, {
+          displayName: username
+        }).then(() => {
+          alert("Account Created and profile updated");
+          console.log(username, auth.currentUser.displayName);
+        }).catch((error) => {
+          console.log("Error updating profile:", error);
+          alert("Account Created but failed to update profile");
+        });
       }).catch((error) => {
         alert('Error saving user data: ' + error.message);
       });
+
+
+      
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         alert('Email address is already in use. Please use a different email.');
@@ -47,7 +59,7 @@ const SignUp = ()=> {
         console.error(error);
       }
     }
-
+    
   };
     
   
@@ -95,7 +107,6 @@ const styles = StyleSheet.create({
   signUPBox: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: '25%',
     width: '60%',
     height: 50,
     marginLeft: '20%',
@@ -116,7 +127,7 @@ const styles = StyleSheet.create({
 
   },
   EmailHeader:{
-    marginTop: 250,
+    marginTop: 50,
     marginHorizontal: 10,
     fontSize: 30,
     color: '#FFFFFF',

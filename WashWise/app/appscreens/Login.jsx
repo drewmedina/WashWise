@@ -1,9 +1,8 @@
 import {Image, View, Text, StyleSheet, TextInput, ActivityIndicator, KeyboardAvoidingView, Pressable, ImageBackground} from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, Component} from 'react';
 import Logo from '../../assets/bcg.png';
 import { FIREBASE_AUTH } from '../../FireBaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 
 const Login = ({navigation}) => {
@@ -17,14 +16,11 @@ const Login = ({navigation}) => {
             const response = await signInWithEmailAndPassword(auth, email,password);
             console.log(response);
             alert('Check your email');
-            setLoading(true);
-            navigation.navigate('FloorSelect');
         }
         catch (error){
             console.log(error);
         }
         finally{
-            setLoading(false);
         }
     }
     return (
@@ -109,7 +105,7 @@ const styles = StyleSheet.create({
     Login: {
         alignItems: 'center',
         backgroundColor: '#FFFFFF',
-        borderRadius: '25%',
+        borderRadius: 25,
         width: '60%',
         height: 50,
         marginLeft: '20%',
