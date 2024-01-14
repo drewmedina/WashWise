@@ -1,33 +1,26 @@
-  import React, { useState } from 'react';
+  import React, { useState, useEffect } from 'react';
   import { ImageBackground, StyleSheet, Text, View } from 'react-native';
   import { Dropdown } from 'react-native-element-dropdown';
   import AntDesign from '@expo/vector-icons/AntDesign';
   import BG from '../../assets/bcg.png';
 
   const data = [
-    { label: 'Floor 2', value: '1' },
-    { label: 'Floor 3', value: '2' },
+    { label: 'Floor 2', value: '2' },
+    { label: 'Floor 3', value: '3' },
   ];
 
-  const DropdownComponent = () => {
+  const DropdownComponent = ({navigation}) => {
     const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
 
-    const renderLabel = () => {
-      if (value || isFocus) {
-        return (
-          <Text style={[styles.label, isFocus && { color: 'blue' }]}>
-          </Text>
-        );
-      }
-      return null;
-    };
+    useEffect(() => {
+        navigation.navigate("Floor" + value);
+    },[value])
 
     return (
         
             <View style={styles.container}>
             <ImageBackground source = {BG} style = {{flex: 1, height: '100%'}}>
-            {renderLabel()}
             <Text style = {styles.SelectFloorText}>Select Floor</Text>
             <Dropdown
               style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
