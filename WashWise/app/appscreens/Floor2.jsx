@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Image, StyleSheet, View, Text, Pressable } from 'react-native';
+import { Image, StyleSheet, View, Text, Pressable, Button } from 'react-native';
 import GreenMachine from '../../assets/WashingMachineImages/green_machine.png';
 import RedMachine from '../../assets/WashingMachineImages/red_machine.png';
-import { getDatabase, ref, child, get, update } from 'firebase/database';
+import { getDatabase, ref, child, get, update, onValue } from 'firebase/database';
 import { getAuth } from 'firebase/auth';
+import Constants from 'expo-constants';
+import Timer from '../../components/Timer.js';
+import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
+
+// Listen to changes in the timer value
+
 
 export default function WashingMachine() {
   const db = getDatabase();
@@ -13,7 +19,16 @@ export default function WashingMachine() {
 
   const [machines, setMachines] = useState([null, null, null, null]);
   const [users, setUsers] = useState([null,null,null,null]);
+  const initialIsPlaying = machines.map(() => false);
+  const initialKeys = machines.reduce((acc, _, index) => {
+    acc[index] = 0;
+    return acc;
+  }, {});
 
+
+  const [keys, setKeys] = useState(initialKeys);
+  
+  const [isPlaying, setIsPlaying] = useState(initialIsPlaying);
   useEffect(() => {
     const fetchMachines = async () => {
       const occupiedPromises = [];
@@ -65,39 +80,87 @@ export default function WashingMachine() {
     fetchMachines();
   }, [db]);
 
+
   const toggleOccupancy = (index) => {
     const updatedMachines = [...machines];
     const updatedUsers = [...users];
+    const updatedIsPlaying = [...isPlaying];
+    const updatedKeys = { ...keys };
+  
     updatedMachines[index - 1] = !updatedMachines[index - 1];
-    if (updatedMachines[index - 1]){
-        updatedUsers[index - 1] = user.email;
+  
+    if (updatedMachines[index - 1]) {
+      updatedUsers[index - 1] = user.email;
+      updatedIsPlaying[index - 1] = true;
+    } else {
+      updatedUsers[index - 1] = 'none';
+      updatedIsPlaying[index - 1] = false;
     }
-    else{
-        updatedUsers[index - 1] = 'none';
-    }
-    
-
+  
     update(ref(db, `Machines/Floor2/Machine${index}`), {
       Occupied: updatedMachines[index - 1],
       User: updatedUsers[index - 1],
     });
-
-    setMachines(updatedMachines);
-    setUsers(updatedUsers);
+  
+    setMachines([...updatedMachines]);
+    setUsers([...updatedUsers]);
+    setIsPlaying([...updatedIsPlaying]);
+    setKeys((prevKeys) => ({ ...prevKeys, [index - 1]: prevKeys[index - 1] + 1 }));
   };
-
+  
+  const showTimer = (machine) =>{
+    console.log("hello");
+    if(machine) {
+      <Timer/>
+      } 
+      else{
+        console.log("hello");
+      }
+  }
   const updateMachines = () => {
     return machines.map((machine, index) => (
-      machine ? (
-        <Image key={index} source={RedMachine} style={styles.WashingMachine} />
-      ) : (
-        <Image key={index} source={GreenMachine} style={styles.WashingMachine} />
-      )
+      <View key={index} style={styles.machineItem}>
+        <View style={styles.timerContainer}>
+          <CountdownCircleTimer
+            isPlaying={isPlaying[index]}
+            duration={3300}
+            key={keys[index]}
+            
+            colors={["#004777", "#F7B801", "#A30000", "#A30000"]}
+            colorsTime={[10, 6, 3, 0]}
+            onComplete={() => {
+              toggleOccupancy(index + 1);
+            }}
+            
+            updateInterval={1}
+            size={100}
+            
+          >
+
+            {({ remainingTime, color }) => (
+              <Text style = {{color, fontSize: 20, remainingTime}}>{renderTime(remainingTime)}</Text>
+            )}
+            
+          </CountdownCircleTimer>
+        </View>
+        <Image source={machine ? RedMachine : GreenMachine} style={styles.washingMachine} />
+
+      </View>
     ));
   };
+  
+  
+  
+  
 
   const notifyUser = () => {
 
+  } 
+  const renderTime = (remainingTime) => {     
+    const minutes = Math.floor(remainingTime / 60)
+    const seconds = remainingTime % 60
+  
+    return (`${minutes}:${seconds}`);
   }
   return (
     <View style={styles.container}>
@@ -129,12 +192,12 @@ export default function WashingMachine() {
       </View>
       </View>
       
-      
       <View style={styles.machineContainer}>{updateMachines()}</View>
       <View style={styles.buttonContainer}>
         <Pressable style={styles.Button} onPress={() => toggleOccupancy(1)}>
           <Text style={styles.ButtonText}>{machines[0] ? 'Vacate' : 'Claim'}</Text>
         </Pressable>
+        
         <Pressable style={styles.Button} onPress={() => toggleOccupancy(2)}>
           <Text style={styles.ButtonText}>{machines[1] ? 'Vacate' : 'Claim'}</Text>
         </Pressable>
@@ -161,13 +224,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexWrap: 'wrap',
     marginBottom: '5%',
-    backgroundColor: '#000000',
+    flex: 1,
+
+
   },
-  WashingMachine: {
+  machineRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  machineItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginBottom: 10,
     width: '25%',
-    padding: 5,
-    marginTop: 0,
   },
+  washingMachine: {
+    width: '100%',
+    padding: 5,
+  },
+
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -193,7 +270,7 @@ const styles = StyleSheet.create({
   },
   MachineLists:{
     width: '100%',
-    marginTop: 15,
+    marginTop: 0,
     flexDirection: 'column',
     flex: 1,
   },
@@ -215,5 +292,13 @@ const styles = StyleSheet.create({
   },
   NotifyText: {
     fontSize: 15,
+  },
+  timerContainer: {
+    flex: 1,
+    width: '100%',
+  },
+
+  buttonTimer: {
+    marginBottom: 375,
   }
 });

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "739657637572",
+    "firebase_url": "https://washwise-b784e-default-rtdb.firebaseio.com",
+    "project_id": "washwise-b784e",
+    "storage_bucket": "washwise-b784e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739657637572:android:d099ce30b558c30339b391",
+        "android_client_info": {
+          "package_name": "com.drew_medina.WashWise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCa7yBWZhCDdzyN_p09uILMuyDB3AH9YHo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

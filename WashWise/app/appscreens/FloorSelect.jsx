@@ -14,7 +14,9 @@
     const [isFocus, setIsFocus] = useState(false);
 
     useEffect(() => {
+      if (value > 1){
         navigation.navigate("Floor" + value);
+      }
     },[value])
 
     return (
