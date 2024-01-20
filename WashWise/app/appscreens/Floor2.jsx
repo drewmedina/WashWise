@@ -7,7 +7,7 @@ import { getAuth } from 'firebase/auth';
 import Constants from 'expo-constants';
 import Timer from '../../components/Timer.js';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
-
+import moment from 'moment';
 // Listen to changes in the timer value
 
 
@@ -29,10 +29,16 @@ export default function WashingMachine() {
   const [keys, setKeys] = useState(initialKeys);
   
   const [isPlaying, setIsPlaying] = useState(initialIsPlaying);
+  const [startTimes, setStartTimes] = useState([null,null,null,null]);
+  const [endTimes, setEndTimes] = useState([null,null,null,null]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchMachines = async () => {
       const occupiedPromises = [];
       const userPromises = [];
+      const timePromises = [];
+      const endTimePromises = [];
       for (let i = 1; i < 5; i++) {
         occupiedPromises.push(
           get(child(ref(db), `Machines/Floor2/Machine${i}/Occupied`))
@@ -64,14 +70,51 @@ export default function WashingMachine() {
                 return null;
               })
           );
+          timePromises.push(
+            get(child(ref(db), `Machines/Floor2/Machine${i}/StartTime`))
+              .then((snapshot) => {
+                if (snapshot.exists()) {
+                  return snapshot.val();
+                } else {
+                  console.log(`No data available for Machine ${i}`);
+                  return null;
+                }
+              })
+              .catch((error) => {
+                console.error(error);
+                return null;
+              })
+          );
+          endTimePromises.push(
+            get(child(ref(db), `Machines/Floor2/Machine${i}/EndTime`))
+              .then((snapshot) => {
+                if (snapshot.exists()) {
+                  return snapshot.val();
+                } else {
+                  console.log(`No data available for Machine ${i}`);
+                  return null;
+                }
+              })
+              .catch((error) => {
+                console.error(error);
+                return null;
+              })
+          );
       }
 
       try {
         const machinesData = await Promise.all(occupiedPromises);
         const usersData = await Promise.all(userPromises);
+        const timeData = await Promise.all(timePromises);
+        const endTimeData = await Promise.all(endTimePromises);
 
         setMachines(machinesData);
         setUsers(usersData);
+        setStartTimes(timeData);
+        setEndTimes(endTimeData);
+        setLoading(false);
+
+        
       } catch (error) {
         console.error(error);
       }
@@ -80,32 +123,47 @@ export default function WashingMachine() {
     fetchMachines();
   }, [db]);
 
-
+  if (loading) {
+    return <Text>Loading...</Text>; // Render a loading indicator while fetching data
+  }
+  if(!loading){
   const toggleOccupancy = (index) => {
     const updatedMachines = [...machines];
     const updatedUsers = [...users];
     const updatedIsPlaying = [...isPlaying];
+    const updatedTimes = [...startTimes];
+    const updatedEndTimes = [...endTimes]
     const updatedKeys = { ...keys };
   
     updatedMachines[index - 1] = !updatedMachines[index - 1];
   
     if (updatedMachines[index - 1]) {
       updatedUsers[index - 1] = user.email;
+      updatedTimes[index - 1] = moment().format('YYYY-MM-DD hh:mm:ss a');
+      updatedEndTimes[index - 1] = moment().add(55,'minutes').format('YYYY-MM-DD hh:mm:ss a');
       updatedIsPlaying[index - 1] = true;
+
+
     } else {
       updatedUsers[index - 1] = 'none';
+      updatedTimes[index - 1] = 0;
+      updatedEndTimes[index - 1] = 0;
       updatedIsPlaying[index - 1] = false;
     }
   
     update(ref(db, `Machines/Floor2/Machine${index}`), {
       Occupied: updatedMachines[index - 1],
       User: updatedUsers[index - 1],
+      StartTime: updatedTimes[index - 1],
+      EndTime: updatedEndTimes[index - 1],
     });
   
     setMachines([...updatedMachines]);
     setUsers([...updatedUsers]);
     setIsPlaying([...updatedIsPlaying]);
     setKeys((prevKeys) => ({ ...prevKeys, [index - 1]: prevKeys[index - 1] + 1 }));
+    setStartTimes([...updatedTimes]);
+    setEndTimes([...updatedEndTimes]);
   };
   
   const showTimer = (machine) =>{
@@ -122,8 +180,8 @@ export default function WashingMachine() {
       <View key={index} style={styles.machineItem}>
         <View style={styles.timerContainer}>
           <CountdownCircleTimer
-            isPlaying={isPlaying[index]}
-            duration={3300}
+            isPlaying={machines[index]}
+            duration={getTimeDif(index)}
             key={keys[index]}
             
             colors={["#004777", "#F7B801", "#A30000", "#A30000"]}
@@ -138,7 +196,7 @@ export default function WashingMachine() {
           >
 
             {({ remainingTime, color }) => (
-              <Text style = {{color, fontSize: 20, remainingTime}}>{renderTime(remainingTime)}</Text>
+              <Text style = {{color, fontSize: 20}}>{(renderTime(remainingTime))}</Text>
             )}
             
           </CountdownCircleTimer>
@@ -147,6 +205,22 @@ export default function WashingMachine() {
 
       </View>
     ));
+  };
+  const getTimeDif = (index) => {
+    if (machines[index] && endTimes[index]) {
+      currentTime = moment().format('YYYY-MM-DD hh:mm:ss a');
+      const endTime = moment(endTimes[index], 'YYYY-MM-DD hh:mm:ss a', true);
+      const currentTimeMoment = moment(currentTime, 'YYYY-MM-DD hh:mm:ss a', true);
+  
+      if (endTime.isValid() && currentTimeMoment.isValid()) {
+        const difference = endTime.diff(currentTimeMoment, 'seconds');
+        console.log(difference);
+        return difference;
+      } else {
+        console.error('Invalid date format.');
+      }
+    }
+    return 0;
   };
   
   
@@ -210,8 +284,8 @@ export default function WashingMachine() {
       </View>
     </View>
   );
+  }
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
